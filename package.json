@@ -12,6 +12,7 @@
     "@supabase/auth-helpers-nextjs": "^0.10.0",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "@syncfusion/ej2-react-diagrams": "^29.1.37",
     "formidable": "^3.5.2",
     "next": "15.2.4",
     "react": "^19.0.0",

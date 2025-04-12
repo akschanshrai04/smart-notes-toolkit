@@ -33,21 +33,21 @@ export default function UploadForm() {
   };
 
   return (
-    <div className="p-4 border rounded-md max-w-md mx-auto mt-10">
-      <h2 className="text-xl font-bold mb-4">📄 Upload a PDF</h2>
+    <div className="p-6 border rounded-lg max-w-md mx-auto mt-10 bg-blue-50 shadow-lg">
+      <h2 className="text-2xl font-bold mb-4 text-blue-800">📄 Upload a PDF</h2>
       <input
         type="file"
         accept="application/pdf"
         onChange={(e) => setFile(e.target.files?.[0] || null)}
-        className="mb-2 border px-2 py-1 rounded"
+        className="mb-4 border px-3 py-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
         onClick={handleUpload}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-300 ease-in-out w-full"
       >
         Upload
       </button>
-      <p className="mt-3 text-sm">{status}</p>
+      <p className="mt-3 text-sm text-blue-600">{status}</p>
     </div>
   );
 }

@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import { useUpload } from '@/context/UploadContext';
 import { createClient } from '@/utils/supabase/client';
-import MindMapFlowWrapper from './MindMapFlowWrapper';
+import { ReactFlowProvider } from 'reactflow';
+// import Mindmap from './Mindmap';
+import Mindmap from './Mindmap';
 
 interface Flashcard {
   question: string;
@@ -45,46 +47,162 @@ export default function MainDisplay() {
         }
     ])
 
-    setMindmap({
-      "Peer-to-Peer Book Exchange": {
-          "Impact": [
-              "Cost Savings",
-              "Sustainability",
-              "Convenience",
-              "Community Building"
-          ],
-          "Platform": {
-              "Backend": "Node.js with Express.js or Django for handling backend logic and requests",
-              "Database": "MongoDB (NoSQL) or PostgreSQL to store book listings, user profiles, and reviews",
-              "Frontend": "React.js or Vue.js for a dynamic, responsive user interface",
-              "Authentication": "Firebase Authentication or JWT-based secure login system to ensure only verified students can use the platform"
-          },
-          "Conclusion": "Addresses a real and pressing college problem with a practical, scalable, and cost-effective solution",
-          "Problem Statement": {
-              "Issue 1": "Textbooks are a significant expense for students",
-              "Issue 2": "Finding affordable second-hand books is difficult",
-              "Issue 3": "Existing options are unstructured and inefficient",
-              "Issue 4": "Lack of dedicated platform for textbook exchanges"
-          },
-          "Proposed Solution": {
-              "Key Features": [
-                  "User Registration & Profiles",
-                  "Book Listing & Searching",
-                  "Chat System",
-                  "Rating System",
-                  "Exchange Option"
-              ],
-              "Web-based Platform": "Students can buy, sell, or exchange books directly with peers in their college community"
-          },
-          "Implementation Strategy": [
-              "User Authentication",
-              "Book Listing System",
-              "Search & Filter Feature",
-              "Chat & Negotiation",
-              "Review System"
-          ]
+    setMindmap([
+      {
+        "id": "platform",
+        "Label": "Peer-to-Peer Book Exchange Platform"
+      },
+      {
+        "id": "problem",
+        "Label": "Problems",
+        "parentId": "platform"
+      },
+      {
+        "id": "problem_textbooks",
+        "Label": "Textbooks are a significant expense for students",
+        "parentId": "problem"
+      },
+      {
+        "id": "problem_second_hand_books",
+        "Label": "Finding affordable second-hand books is difficult",
+        "parentId": "problem"
+      },
+      {
+        "id": "problem_unstructured",
+        "Label": "Existing options are unstructured and inefficient",
+        "parentId": "problem"
+      },
+      {
+        "id": "problem_wasted_resources",
+        "Label": "Lack of dedicated platform results in wasted resources",
+        "parentId": "problem"
+      },
+      {
+        "id": "solution",
+        "Label": "Proposed Solution",
+        "parentId": "platform"
+      },
+      {
+        "id": "solution_platform",
+        "Label": "Web-based platform for students to buy, sell, or exchange books",
+        "parentId": "solution"
+      },
+      {
+        "id": "features",
+        "Label": "Key Features",
+        "parentId": "solution_platform"
+      },
+      {
+        "id": "features_registration",
+        "Label": "User Registration & Profiles",
+        "parentId": "features"
+      },
+      {
+        "id": "features_listing",
+        "Label": "Book Listing & Searching",
+        "parentId": "features"
+      },
+      {
+        "id": "features_chat",
+        "Label": "Chat System",
+        "parentId": "features"
+      },
+      {
+        "id": "features_review",
+        "Label": "Rating System",
+        "parentId": "features"
+      },
+      {
+        "id": "features_exchange",
+        "Label": "Exchange Option",
+        "parentId": "features"
+      },
+      {
+        "id": "tech_stack",
+        "Label": "Tech Stack",
+        "parentId": "platform"
+      },
+      {
+        "id": "tech_stack_frontend",
+        "Label": "Frontend: React.js or Vue.js",
+        "parentId": "tech_stack"
+      },
+      {
+        "id": "tech_stack_backend",
+        "Label": "Backend: Node.js with Express.js or Django",
+        "parentId": "tech_stack"
+      },
+      {
+        "id": "tech_stack_database",
+        "Label": "Database: MongoDB or PostgreSQL",
+        "parentId": "tech_stack"
+      },
+      {
+        "id": "tech_stack_authentication",
+        "Label": "Authentication: Firebase Authentication or JWT",
+        "parentId": "tech_stack"
+      },
+      {
+        "id": "implementation",
+        "Label": "Implementation Strategy",
+        "parentId": "platform"
+      },
+      {
+        "id": "implementation_authentication",
+        "Label": "1. User Authentication",
+        "parentId": "implementation"
+      },
+      {
+        "id": "implementation_listing",
+        "Label": "2. Book Listing System",
+        "parentId": "implementation"
+      },
+      {
+        "id": "implementation_search",
+        "Label": "3. Search & Filter Feature",
+        "parentId": "implementation"
+      },
+      {
+        "id": "implementation_chat",
+        "Label": "4. Chat & Negotiation",
+        "parentId": "implementation"
+      },
+      {
+        "id": "implementation_review",
+        "Label": "5. Review System",
+        "parentId": "implementation"
+      },
+      {
+        "id": "impact",
+        "Label": "Impact",
+        "parentId": "platform"
+      },
+      {
+        "id": "impact_cost",
+        "Label": "Cost Savings",
+        "parentId": "impact"
+      },
+      {
+        "id": "impact_sustainability",
+        "Label": "Sustainability",
+        "parentId": "impact"
+      },
+      {
+        "id": "impact_convenience",
+        "Label": "Convenience",
+        "parentId": "impact"
+      },
+      {
+        "id": "impact_community",
+        "Label": "Community Building",
+        "parentId": "impact"
+      },
+      {
+        "id": "conclusion",
+        "Label": "Conclusion",
+        "parentId": "platform"
       }
-  })
+    ])
   
     const getUser = async () => {
       const supabase = createClient();
@@ -132,45 +250,55 @@ export default function MainDisplay() {
   }, [uploadData, userId]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold">Main Content for the Display</h1>
+    <div className="p-6 bg-blue-50 min-h-screen">
+      <h1 className="text-2xl font-bold text-blue-800">Main Content for the Display</h1>
 
       {uploadData && (
         <div className="mt-4 space-y-2">
-          <p><strong>Uploaded PDF Name:</strong> {uploadData.pdfName}</p>
-          <p><strong>PDF URL:</strong> <a className="text-blue-600 underline" href={uploadData.pdfUrl} target="_blank" rel="noreferrer">{uploadData.pdfUrl}</a></p>
+          <p className="font-semibold text-blue-700"><strong>Uploaded PDF Name:</strong> {uploadData.pdfName}</p>
+          <p className="text-blue-600 underline"><strong>PDF URL:</strong> <a href={uploadData.pdfUrl} target="_blank" rel="noreferrer">{uploadData.pdfUrl}</a></p>
         </div>
       )}
 
-      {summary && (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">📄 Summary</h2>
-          <p className="bg-gray-100 p-4 rounded">{summary}</p>
+      {summary ? (
+        <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-lg font-semibold mb-2 text-blue-800">📄 Summary</h2>
+          <p className="text-blue-600">{summary}</p>
+        </div>
+      ) : (
+        <div className="flex justify-center items-center mt-6">
+          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
         </div>
       )}
 
-      {flashcards.length > 0 && (
+      {flashcards.length > 0 ? (
         <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2">🧠 Flashcards</h2>
+          <h2 className="text-lg font-semibold mb-2 text-blue-800">🧠 Flashcards</h2>
           <ul className="space-y-4">
             {flashcards.map((card, index) => (
-              <li key={index} className="bg-white border p-4 rounded shadow-sm">
-                <p className="font-medium text-gray-800">Q: {card.question}</p>
-                <p className="text-gray-600 mt-1">A: {card.answer}</p>
+              <li key={index} className="bg-white border p-4 rounded-lg shadow-sm">
+                <p className="font-medium text-blue-800">Q: {card.question}</p>
+                <p className="text-blue-600 mt-1">A: {card.answer}</p>
               </li>
             ))}
           </ul>
         </div>
+      ) : (
+        <div className="flex justify-center items-center mt-6">
+          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
+        </div>
       )}
 
-      {mindmap && (
+      {mindmap ? (
         <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-2">Mindmap Diagram</h2>
-          <MindMapFlowWrapper 
-            jsonData={mindmap}
-            height="600px"
-            width="100%" 
+          <h2 className="text-xl font-semibold mb-2 text-blue-800">Mindmap Diagram</h2>
+          <Mindmap 
+            data={mindmap}
           />
+        </div>
+      ) : (
+        <div className="flex justify-center items-center mt-8">
+          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
         </div>
       )}
     </div>
