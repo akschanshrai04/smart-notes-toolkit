@@ -1,0 +1,1502 @@
+{
+  "name": "smart-notes-toolkit",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "={{ $json.body.pdfUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        380,
+        -100
+      ],
+      "id": "a512c435-10cf-45bf-9a81-7e9a659e2798",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        620,
+        -180
+      ],
+      "id": "c85e8ef3-1b91-4c52-af51-f64340f6f563",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a41f3bf9-52bc-4f1c-824a-5b40184d2432",
+              "name": "data",
+              "value": "={{ JSON.stringify($json[\"text\"]) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        840,
+        -180
+      ],
+      "id": "9d9c8bac-70ed-42d3-8225-a147feae1dbc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistralai/mixtral-8x7b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"Summarize the following text:\\n\\n{{ $json.data }}\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1280,
+        -320
+      ],
+      "id": "7d046ebe-baab-4a85-89eb-ca5e77184c2d",
+      "name": "Ai summary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistralai/mixtral-8x7b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are given the following text:\\n\\n{{ $json.data }}\\n\\nAnalyze the text and generate a hierarchical JSON array representing the concepts mentioned. Use the following structure for each item:\\njson\\n{ 'id': string, 'Label': string, 'parentId'?: string }\\n\\nEach concept or subtopic should be represented as a node.\\nAssign a unique 'id' to each node.\\nUse 'Label' to represent the name/title of the node and dont make sure the titles not too long.\\nIf the node is a subtopic of another, set its 'parentId' to the 'id' of the parent node.\\nThe resulting structure should reflect the conceptual hierarchy present in the input text.\\nOutput only the JSON array.\\nExample Output Format:\\njson\\n[\\n { 'id': '1', 'Label': 'Smart Home System' },\\n { 'id': '2', 'Label': 'Key Benefits', 'parentId': '1' },\\n { 'id': '3', 'Label': 'Energy Efficiency', 'parentId': '2' }\\n]\\n , make sure the format is correct\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1260,
+        -140
+      ],
+      "id": "abdf475c-bb69-4745-836a-7bd7bbb9758e",
+      "name": "ai mind maps json"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://openrouter.ai/api/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"mistralai/mixtral-8x7b-instruct\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"You are an AI assistant that generates flashcards for studying.\\nBased on the following input text, create a list of flashcards.\\nEach flashcard must have only two fields:\\nquestion\\nanswer\\nReturn the output as pure JSON (no explanations, no markdown).\\nInput Text: {{ $json.data }}\"\n    }\n  ]\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1240,
+        40
+      ],
+      "id": "7bb510f8-fc9c-4704-805f-df4c2683b7eb",
+      "name": "ai flashcard json"
+    },
+    {
+      "parameters": {
+        "jsCode": "let text = $input.first().json.data;\n\nlet data = text.substring(1 , text.length - 1);\n\nreturn {data}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1060,
+        -180
+      ],
+      "id": "999912a8-7598-46be-9036-e845ca826dd3",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb7dba49-e891-4bb5-96f0-fe70f995fdd5",
+              "name": "summary",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        -340
+      ],
+      "id": "3de7a5c8-beb4-493c-bd55-755ba0d2568a",
+      "name": "summary"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32db7e28-b31c-464f-bad0-a848807e0e82",
+              "name": "mindmap",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "array"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        -160
+      ],
+      "id": "1b3dd56c-965e-478b-9a5a-106a8c52e6c3",
+      "name": "mindmap"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b148daf6-de6b-45ba-a4c3-12bf80cd4423",
+              "name": "flash card",
+              "value": "={{ $json.choices[0].message.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1540,
+        40
+      ],
+      "id": "5b966251-30bb-4b97-804a-4acf6130bd81",
+      "name": "flashcard"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "summary"
+            },
+            {
+              "fieldToAggregate": "mindmap"
+            },
+            {
+              "fieldToAggregate": "flash card"
+            },
+            {
+              "fieldToAggregate": "pdfName"
+            },
+            {
+              "fieldToAggregate": "userId"
+            },
+            {
+              "fieldToAggregate": "pdfUrl"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        -200
+      ],
+      "id": "bad35a5a-2318-488b-82fe-87870f33eae5",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1960,
+        120
+      ],
+      "id": "3de67336-80c0-46b9-8dcf-7809e303ebab",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a2fb9444-637d-49ca-a205-369e8d7c892e",
+              "name": "summary",
+              "value": "={{ $json.summary[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "6167912b-61f6-4ffd-b8c0-c38f615c7b85",
+              "name": "mindmap",
+              "value": "={{ $json.mindmap[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "18ae7988-3563-4f05-8f3b-8a388de95129",
+              "name": "flashcard",
+              "value": "={{ $json['flash card'][0] }}",
+              "type": "string"
+            },
+            {
+              "id": "35128361-7f74-4391-a3ca-865d212d8e43",
+              "name": "pdfName",
+              "value": "={{ $json.pdfName[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "1fe563ce-409b-4184-b55e-0b640a7517bd",
+              "name": "userId",
+              "value": "={{ $json.userId[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "54bf3cdf-46dc-4c1b-ac15-b840373116fc",
+              "name": "pdfUrl",
+              "value": "={{ $json.pdfUrl[0] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2320,
+        -200
+      ],
+      "id": "5f67b269-460c-4f65-8a13-4a2b088166f2",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      summary: $input.first().json.summary,\n      flashcards: JSON.parse($input.first().json.flashcard),\n      mindmap:JSON.parse($input.first().json.mindmap),\n      pdfName:  $input.first().json.pdfName,\n      userId: $input.first().json.userId,\n      pdfUrl: $input.first().json.pdfUrl\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2540,
+        -200
+      ],
+      "id": "0213c1a3-efcf-4044-bd5a-7bd96f219470",
+      "name": "Code1"
+    },
+    {
+      "parameters": {
+        "tableId": "summaries",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "summary",
+              "fieldValue": "={{ $json.summary }}"
+            },
+            {
+              "fieldId": "flashcards",
+              "fieldValue": "={{ $json.flashcards }}"
+            },
+            {
+              "fieldId": "mindmap",
+              "fieldValue": "={{ $json.mindmap }}"
+            },
+            {
+              "fieldId": "pdf_name",
+              "fieldValue": "={{ $json.pdfName }}"
+            },
+            {
+              "fieldId": "user_id",
+              "fieldValue": "={{ $json.userId }}"
+            },
+            {
+              "fieldId": "pdf_url",
+              "fieldValue": "={{ $json.pdfUrl }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2800,
+        -20
+      ],
+      "id": "c87f9d43-f379-4d60-8602-64da719a0081",
+      "name": "Supabase",
+      "alwaysOutputData": false,
+      "credentials": {
+        "supabaseApi": {
+          "id": "glwGQKCUFKEpEFjr",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6153a812-99d7-4796-82b3-dd963dfe668a",
+              "name": "pdfName",
+              "value": "={{ $json.body.pdfName }}",
+              "type": "string"
+            },
+            {
+              "id": "31975871-3d4e-4574-87ae-97049b515c39",
+              "name": "userId",
+              "value": "={{ $json.body.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "eb1cd0aa-56d5-4751-b812-87138eac7b36",
+              "name": "pdfUrl",
+              "value": "={{ $json.body.pdfUrl }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        500,
+        300
+      ],
+      "id": "2c9b3dec-cab2-4223-a960-e5e86cf527f4",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "upload-finished",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -120,
+        -140
+      ],
+      "id": "6a06e8bd-c1b0-465b-ab02-6ba7c2d6098c",
+      "name": "Webhook",
+      "webhookId": "8eb4d34e-f72c-4dcd-a67b-5e31d1fc12c8"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        3020,
+        -20
+      ],
+      "id": "fbe0bd45-7c25-423a-8b77-56d054cb6f0b",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {
+    "Supabase": [
+      {
+        "json": {
+          "id": "ff75f500-a905-4fac-8591-352dccd8fba8",
+          "user_id": "a09a0051-389c-4cbb-9a04-a547b2933bd8",
+          "pdf_name": "bookexchange.pdf",
+          "pdf_url": "https://qxmzvlwedjneirmutxap.supabase.co/storage/v1/object/public/pdf-notes/1744230060138_bookexchange.pdf",
+          "original_text": null,
+          "summary": " The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured and inefficient, making it difficult for students to find affordable books on time. The platform allows students to buy, sell, or exchange books with others in their college community through features like user registration, book listing and searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT for secure login. The platform aims to save costs for students, promote sustainability, and build a community of sharing and collaboration.",
+          "flashcards": [
+            {
+              "answer": "Textbooks are a significant expense for students, finding affordable second-hand books is difficult, existing options are unstructured and inefficient, leading to wasted resources and limited access to affordable learning materials.",
+              "question": "What is the problem with the current textbook purchase situation for students?"
+            },
+            {
+              "answer": "By creating a web-based platform for students to buy, sell, or exchange books directly with peers in their college community with features like user registration, book listing & searching, chat system, rating system, and an exchange option.",
+              "question": "How does the Peer-to-Peer Book Exchange propose to solve the textbook issue?"
+            },
+            {
+              "answer": "User registration & profiles, book listing & searching, chat system, rating system, and an exchange option.",
+              "question": "What are some of the key features of the Peer-to-Peer Book Exchange?"
+            },
+            {
+              "answer": "The frontend will use React.js or Vue.js, while the backend will run Node.js with Express.js or Django.",
+              "question": "What frontend and backend technologies are employed in the proposed tech stack for the Peer-to-Peer Book Exchange?"
+            },
+            {
+              "answer": "By encouraging book reuse, the proposed platform reduces paper waste and promotes an eco-friendly approach to education.",
+              "question": "How does the solution encourage sustainability and eco-friendly approaches to education?"
+            },
+            {
+              "answer": "The chat system allows for secure communication; a review system encourages ratings and feedback by buyers, improving credibility among students.",
+              "question": "What measures does the system have in place to ensure students' trust?"
+            }
+          ],
+          "created_at": "2025-04-09T20:30:41.558688",
+          "mindmap": {
+            "Peer-to-Peer Book Exchange": {
+              "Impact": [
+                "Cost Savings",
+                "Sustainability",
+                "Convenience",
+                "Community Building"
+              ],
+              "Platform": {
+                "Backend": "Node.js with Express.js or Django for handling backend logic and requests",
+                "Database": "MongoDB (NoSQL) or PostgreSQL to store book listings, user profiles, and reviews",
+                "Frontend": "React.js or Vue.js for a dynamic, responsive user interface",
+                "Authentication": "Firebase Authentication or JWT-based secure login system to ensure only verified students can use the platform"
+              },
+              "Conclusion": "Addresses a real and pressing college problem with a practical, scalable, and cost-effective solution",
+              "Problem Statement": {
+                "Issue 1": "Textbooks are a significant expense for students",
+                "Issue 2": "Finding affordable second-hand books is difficult",
+                "Issue 3": "Existing options are unstructured and inefficient",
+                "Issue 4": "Lack of dedicated platform for textbook exchanges"
+              },
+              "Proposed Solution": {
+                "Key Features": [
+                  "User Registration & Profiles",
+                  "Book Listing & Searching",
+                  "Chat System",
+                  "Rating System",
+                  "Exchange Option"
+                ],
+                "Web-based Platform": "Students can buy, sell, or exchange books directly with peers in their college community"
+              },
+              "Implementation Strategy": [
+                "User Authentication",
+                "Book Listing System",
+                "Search & Filter Feature",
+                "Chat & Negotiation",
+                "Review System"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "ai mind maps json": [
+      {
+        "json": {
+          "id": "gen-1744466057-ZnnFfucNQokB6tDGW9Wu",
+          "provider": "DeepInfra",
+          "model": "mistralai/mixtral-8x7b-instruct",
+          "object": "chat.completion",
+          "created": 1744466057,
+          "choices": [
+            {
+              "logprobs": null,
+              "finish_reason": "stop",
+              "native_finish_reason": "stop",
+              "index": 0,
+              "message": {
+                "role": "assistant",
+                "content": " [\n  {\n    \"id\": \"platform\",\n    \"Label\": \"Peer-to-Peer Book Exchange Platform\"\n  },\n  {\n    \"id\": \"problem\",\n    \"Label\": \"Problems\",\n    \"parentId\": \"platform\"\n  },\n  {\n    \"id\": \"problem_textbooks\",\n    \"Label\": \"Textbooks are a significant expense for students\",\n    \"parentId\": \"problem\"\n  },\n  {\n    \"id\": \"problem_second_hand_books\",\n    \"Label\": \"Finding affordable second-hand books is difficult\",\n    \"parentId\": \"problem\"\n  },\n  {\n    \"id\": \"problem_unstructured\",\n    \"Label\": \"Existing options are unstructured and inefficient\",\n    \"parentId\": \"problem\"\n  },\n  {\n    \"id\": \"problem_wasted_resources\",\n    \"Label\": \"Lack of dedicated platform results in wasted resources\",\n    \"parentId\": \"problem\"\n  },\n  {\n    \"id\": \"solution\",\n    \"Label\": \"Proposed Solution\",\n    \"parentId\": \"platform\"\n  },\n  {\n    \"id\": \"solution_platform\",\n    \"Label\": \"Web-based platform for students to buy, sell, or exchange books\",\n    \"parentId\": \"solution\"\n  },\n  {\n    \"id\": \"features\",\n    \"Label\": \"Key Features\",\n    \"parentId\": \"solution_platform\"\n  },\n  {\n    \"id\": \"features_registration\",\n    \"Label\": \"User Registration & Profiles\",\n    \"parentId\": \"features\"\n  },\n  {\n    \"id\": \"features_listing\",\n    \"Label\": \"Book Listing & Searching\",\n    \"parentId\": \"features\"\n  },\n  {\n    \"id\": \"features_chat\",\n    \"Label\": \"Chat System\",\n    \"parentId\": \"features\"\n  },\n  {\n    \"id\": \"features_review\",\n    \"Label\": \"Rating System\",\n    \"parentId\": \"features\"\n  },\n  {\n    \"id\": \"features_exchange\",\n    \"Label\": \"Exchange Option\",\n    \"parentId\": \"features\"\n  },\n  {\n    \"id\": \"tech_stack\",\n    \"Label\": \"Tech Stack\",\n    \"parentId\": \"platform\"\n  },\n  {\n    \"id\": \"tech_stack_frontend\",\n    \"Label\": \"Frontend: React.js or Vue.js\",\n    \"parentId\": \"tech_stack\"\n  },\n  {\n    \"id\": \"tech_stack_backend\",\n    \"Label\": \"Backend: Node.js with Express.js or Django\",\n    \"parentId\": \"tech_stack\"\n  },\n  {\n    \"id\": \"tech_stack_database\",\n    \"Label\": \"Database: MongoDB or PostgreSQL\",\n    \"parentId\": \"tech_stack\"\n  },\n  {\n    \"id\": \"tech_stack_authentication\",\n    \"Label\": \"Authentication: Firebase Authentication or JWT\",\n    \"parentId\": \"tech_stack\"\n  },\n  {\n    \"id\": \"implementation\",\n    \"Label\": \"Implementation Strategy\",\n    \"parentId\": \"platform\"\n  },\n  {\n    \"id\": \"implementation_authentication\",\n    \"Label\": \"1. User Authentication\",\n    \"parentId\": \"implementation\"\n  },\n  {\n    \"id\": \"implementation_listing\",\n    \"Label\": \"2. Book Listing System\",\n    \"parentId\": \"implementation\"\n  },\n  {\n    \"id\": \"implementation_search\",\n    \"Label\": \"3. Search & Filter Feature\",\n    \"parentId\": \"implementation\"\n  },\n  {\n    \"id\": \"implementation_chat\",\n    \"Label\": \"4. Chat & Negotiation\",\n    \"parentId\": \"implementation\"\n  },\n  {\n    \"id\": \"implementation_review\",\n    \"Label\": \"5. Review System\",\n    \"parentId\": \"implementation\"\n  },\n  {\n    \"id\": \"impact\",\n    \"Label\": \"Impact\",\n    \"parentId\": \"platform\"\n  },\n  {\n    \"id\": \"impact_cost\",\n    \"Label\": \"Cost Savings\",\n    \"parentId\": \"impact\"\n  },\n  {\n    \"id\": \"impact_sustainability\",\n    \"Label\": \"Sustainability\",\n    \"parentId\": \"impact\"\n  },\n  {\n    \"id\": \"impact_convenience\",\n    \"Label\": \"Convenience\",\n    \"parentId\": \"impact\"\n  },\n  {\n    \"id\": \"impact_community\",\n    \"Label\": \"Community Building\",\n    \"parentId\": \"impact\"\n  },\n  {\n    \"id\": \"conclusion\",\n    \"Label\": \"Conclusion\",\n    \"parentId\": \"platform\"\n  }\n]",
+                "refusal": null,
+                "reasoning": null
+              }
+            }
+          ],
+          "usage": {
+            "prompt_tokens": 983,
+            "completion_tokens": 1224,
+            "total_tokens": 2207
+          }
+        }
+      }
+    ],
+    "mindmap": [
+      {
+        "json": {
+          "mindmap": [
+            {
+              "id": "platform",
+              "Label": "Peer-to-Peer Book Exchange Platform"
+            },
+            {
+              "id": "problem",
+              "Label": "Problems",
+              "parentId": "platform"
+            },
+            {
+              "id": "problem_textbooks",
+              "Label": "Textbooks are a significant expense for students",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_second_hand_books",
+              "Label": "Finding affordable second-hand books is difficult",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_unstructured",
+              "Label": "Existing options are unstructured and inefficient",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_wasted_resources",
+              "Label": "Lack of dedicated platform results in wasted resources",
+              "parentId": "problem"
+            },
+            {
+              "id": "solution",
+              "Label": "Proposed Solution",
+              "parentId": "platform"
+            },
+            {
+              "id": "solution_platform",
+              "Label": "Web-based platform for students to buy, sell, or exchange books",
+              "parentId": "solution"
+            },
+            {
+              "id": "features",
+              "Label": "Key Features",
+              "parentId": "solution_platform"
+            },
+            {
+              "id": "features_registration",
+              "Label": "User Registration & Profiles",
+              "parentId": "features"
+            },
+            {
+              "id": "features_listing",
+              "Label": "Book Listing & Searching",
+              "parentId": "features"
+            },
+            {
+              "id": "features_chat",
+              "Label": "Chat System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_review",
+              "Label": "Rating System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_exchange",
+              "Label": "Exchange Option",
+              "parentId": "features"
+            },
+            {
+              "id": "tech_stack",
+              "Label": "Tech Stack",
+              "parentId": "platform"
+            },
+            {
+              "id": "tech_stack_frontend",
+              "Label": "Frontend: React.js or Vue.js",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_backend",
+              "Label": "Backend: Node.js with Express.js or Django",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_database",
+              "Label": "Database: MongoDB or PostgreSQL",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_authentication",
+              "Label": "Authentication: Firebase Authentication or JWT",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "implementation",
+              "Label": "Implementation Strategy",
+              "parentId": "platform"
+            },
+            {
+              "id": "implementation_authentication",
+              "Label": "1. User Authentication",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_listing",
+              "Label": "2. Book Listing System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_search",
+              "Label": "3. Search & Filter Feature",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_chat",
+              "Label": "4. Chat & Negotiation",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_review",
+              "Label": "5. Review System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "impact",
+              "Label": "Impact",
+              "parentId": "platform"
+            },
+            {
+              "id": "impact_cost",
+              "Label": "Cost Savings",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_sustainability",
+              "Label": "Sustainability",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_convenience",
+              "Label": "Convenience",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_community",
+              "Label": "Community Building",
+              "parentId": "impact"
+            },
+            {
+              "id": "conclusion",
+              "Label": "Conclusion",
+              "parentId": "platform"
+            }
+          ]
+        }
+      }
+    ],
+    "Merge": [
+      {
+        "json": {
+          "summary": " The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured, inefficient, and make it challenging for students to find books they need on time. The proposed platform allows students to buy, sell, or exchange books with peers in their college community through features like user registration, book listing & searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT-based secure login system for authentication. The implementation strategy includes user authentication, book listing system, search & filter feature, chat & negotiation, and review system. The platform aims to reduce costs, promote sustainability, provide convenience, and foster community building."
+        }
+      },
+      {
+        "json": {
+          "mindmap": [
+            {
+              "id": "platform",
+              "Label": "Peer-to-Peer Book Exchange Platform"
+            },
+            {
+              "id": "problem",
+              "Label": "Problems",
+              "parentId": "platform"
+            },
+            {
+              "id": "problem_textbooks",
+              "Label": "Textbooks are a significant expense for students",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_second_hand_books",
+              "Label": "Finding affordable second-hand books is difficult",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_unstructured",
+              "Label": "Existing options are unstructured and inefficient",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_wasted_resources",
+              "Label": "Lack of dedicated platform results in wasted resources",
+              "parentId": "problem"
+            },
+            {
+              "id": "solution",
+              "Label": "Proposed Solution",
+              "parentId": "platform"
+            },
+            {
+              "id": "solution_platform",
+              "Label": "Web-based platform for students to buy, sell, or exchange books",
+              "parentId": "solution"
+            },
+            {
+              "id": "features",
+              "Label": "Key Features",
+              "parentId": "solution_platform"
+            },
+            {
+              "id": "features_registration",
+              "Label": "User Registration & Profiles",
+              "parentId": "features"
+            },
+            {
+              "id": "features_listing",
+              "Label": "Book Listing & Searching",
+              "parentId": "features"
+            },
+            {
+              "id": "features_chat",
+              "Label": "Chat System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_review",
+              "Label": "Rating System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_exchange",
+              "Label": "Exchange Option",
+              "parentId": "features"
+            },
+            {
+              "id": "tech_stack",
+              "Label": "Tech Stack",
+              "parentId": "platform"
+            },
+            {
+              "id": "tech_stack_frontend",
+              "Label": "Frontend: React.js or Vue.js",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_backend",
+              "Label": "Backend: Node.js with Express.js or Django",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_database",
+              "Label": "Database: MongoDB or PostgreSQL",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_authentication",
+              "Label": "Authentication: Firebase Authentication or JWT",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "implementation",
+              "Label": "Implementation Strategy",
+              "parentId": "platform"
+            },
+            {
+              "id": "implementation_authentication",
+              "Label": "1. User Authentication",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_listing",
+              "Label": "2. Book Listing System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_search",
+              "Label": "3. Search & Filter Feature",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_chat",
+              "Label": "4. Chat & Negotiation",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_review",
+              "Label": "5. Review System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "impact",
+              "Label": "Impact",
+              "parentId": "platform"
+            },
+            {
+              "id": "impact_cost",
+              "Label": "Cost Savings",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_sustainability",
+              "Label": "Sustainability",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_convenience",
+              "Label": "Convenience",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_community",
+              "Label": "Community Building",
+              "parentId": "impact"
+            },
+            {
+              "id": "conclusion",
+              "Label": "Conclusion",
+              "parentId": "platform"
+            }
+          ]
+        }
+      },
+      {
+        "json": {
+          "flash card": " [\n  {\n    \"question\": \"What is the problem faced by students regarding textbooks?\",\n    \"answer\": \"Textbooks are a significant expense for students, and finding affordable second-hand books is difficult. Existing options are unstructured and inefficient, making it challenging for students to find the books they need on time.\"\n  },\n  {\n    \"question\": \"What is the proposed solution for the textbook problem?\",\n    \"answer\": \"A web-based platform for students to buy, sell, or exchange books directly with peers in their college community.\"\n  },\n  {\n    \"question\": \"What are the key features of the book exchange platform?\",\n    \"answer\": \"User Registration & Profiles, Book Listing & Searching, Chat System, Rating System, and Exchange Option.\"\n  },\n  {\n    \"question\": \"What technology stack is proposed for the platform's development?\",\n    \"answer\": \"Frontend: React.js or Vue.js, Backend: Node.js with Express.js or Django, Database: MongoDB (NoSQL) or PostgreSQL, Authentication: Firebase Authentication or JWT-based secure login system.\"\n  },\n  {\n    \"question\": \"What are the steps in the implementation strategy for the platform?\",\n    \"answer\": \"1. User Authentication, 2. Book Listing System, 3. Search & Filter Feature, 4. Chat & Negotiation, 5. Review System.\"\n  },\n  {\n    \"question\": \"What are the expected impacts of the book exchange platform?\",\n    \"answer\": \"Cost Savings, Sustainability, Convenience, and Community Building.\"\n  }\n]"
+        }
+      },
+      {
+        "json": {
+          "pdfName": "bookexchange.pdf",
+          "userId": "a09a0051-389c-4cbb-9a04-a547b2933bd8",
+          "pdfUrl": "https://qxmzvlwedjneirmutxap.supabase.co/storage/v1/object/public/pdf-notes/1744230060138_bookexchange.pdf"
+        }
+      }
+    ],
+    "Aggregate": [
+      {
+        "json": {
+          "summary": [
+            " The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured, inefficient, and make it challenging for students to find books they need on time. The proposed platform allows students to buy, sell, or exchange books with peers in their college community through features like user registration, book listing & searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT-based secure login system for authentication. The implementation strategy includes user authentication, book listing system, search & filter feature, chat & negotiation, and review system. The platform aims to reduce costs, promote sustainability, provide convenience, and foster community building."
+          ],
+          "mindmap": [
+            [
+              {
+                "id": "platform",
+                "Label": "Peer-to-Peer Book Exchange Platform"
+              },
+              {
+                "id": "problem",
+                "Label": "Problems",
+                "parentId": "platform"
+              },
+              {
+                "id": "problem_textbooks",
+                "Label": "Textbooks are a significant expense for students",
+                "parentId": "problem"
+              },
+              {
+                "id": "problem_second_hand_books",
+                "Label": "Finding affordable second-hand books is difficult",
+                "parentId": "problem"
+              },
+              {
+                "id": "problem_unstructured",
+                "Label": "Existing options are unstructured and inefficient",
+                "parentId": "problem"
+              },
+              {
+                "id": "problem_wasted_resources",
+                "Label": "Lack of dedicated platform results in wasted resources",
+                "parentId": "problem"
+              },
+              {
+                "id": "solution",
+                "Label": "Proposed Solution",
+                "parentId": "platform"
+              },
+              {
+                "id": "solution_platform",
+                "Label": "Web-based platform for students to buy, sell, or exchange books",
+                "parentId": "solution"
+              },
+              {
+                "id": "features",
+                "Label": "Key Features",
+                "parentId": "solution_platform"
+              },
+              {
+                "id": "features_registration",
+                "Label": "User Registration & Profiles",
+                "parentId": "features"
+              },
+              {
+                "id": "features_listing",
+                "Label": "Book Listing & Searching",
+                "parentId": "features"
+              },
+              {
+                "id": "features_chat",
+                "Label": "Chat System",
+                "parentId": "features"
+              },
+              {
+                "id": "features_review",
+                "Label": "Rating System",
+                "parentId": "features"
+              },
+              {
+                "id": "features_exchange",
+                "Label": "Exchange Option",
+                "parentId": "features"
+              },
+              {
+                "id": "tech_stack",
+                "Label": "Tech Stack",
+                "parentId": "platform"
+              },
+              {
+                "id": "tech_stack_frontend",
+                "Label": "Frontend: React.js or Vue.js",
+                "parentId": "tech_stack"
+              },
+              {
+                "id": "tech_stack_backend",
+                "Label": "Backend: Node.js with Express.js or Django",
+                "parentId": "tech_stack"
+              },
+              {
+                "id": "tech_stack_database",
+                "Label": "Database: MongoDB or PostgreSQL",
+                "parentId": "tech_stack"
+              },
+              {
+                "id": "tech_stack_authentication",
+                "Label": "Authentication: Firebase Authentication or JWT",
+                "parentId": "tech_stack"
+              },
+              {
+                "id": "implementation",
+                "Label": "Implementation Strategy",
+                "parentId": "platform"
+              },
+              {
+                "id": "implementation_authentication",
+                "Label": "1. User Authentication",
+                "parentId": "implementation"
+              },
+              {
+                "id": "implementation_listing",
+                "Label": "2. Book Listing System",
+                "parentId": "implementation"
+              },
+              {
+                "id": "implementation_search",
+                "Label": "3. Search & Filter Feature",
+                "parentId": "implementation"
+              },
+              {
+                "id": "implementation_chat",
+                "Label": "4. Chat & Negotiation",
+                "parentId": "implementation"
+              },
+              {
+                "id": "implementation_review",
+                "Label": "5. Review System",
+                "parentId": "implementation"
+              },
+              {
+                "id": "impact",
+                "Label": "Impact",
+                "parentId": "platform"
+              },
+              {
+                "id": "impact_cost",
+                "Label": "Cost Savings",
+                "parentId": "impact"
+              },
+              {
+                "id": "impact_sustainability",
+                "Label": "Sustainability",
+                "parentId": "impact"
+              },
+              {
+                "id": "impact_convenience",
+                "Label": "Convenience",
+                "parentId": "impact"
+              },
+              {
+                "id": "impact_community",
+                "Label": "Community Building",
+                "parentId": "impact"
+              },
+              {
+                "id": "conclusion",
+                "Label": "Conclusion",
+                "parentId": "platform"
+              }
+            ]
+          ],
+          "flash card": [
+            " [\n  {\n    \"question\": \"What is the problem faced by students regarding textbooks?\",\n    \"answer\": \"Textbooks are a significant expense for students, and finding affordable second-hand books is difficult. Existing options are unstructured and inefficient, making it challenging for students to find the books they need on time.\"\n  },\n  {\n    \"question\": \"What is the proposed solution for the textbook problem?\",\n    \"answer\": \"A web-based platform for students to buy, sell, or exchange books directly with peers in their college community.\"\n  },\n  {\n    \"question\": \"What are the key features of the book exchange platform?\",\n    \"answer\": \"User Registration & Profiles, Book Listing & Searching, Chat System, Rating System, and Exchange Option.\"\n  },\n  {\n    \"question\": \"What technology stack is proposed for the platform's development?\",\n    \"answer\": \"Frontend: React.js or Vue.js, Backend: Node.js with Express.js or Django, Database: MongoDB (NoSQL) or PostgreSQL, Authentication: Firebase Authentication or JWT-based secure login system.\"\n  },\n  {\n    \"question\": \"What are the steps in the implementation strategy for the platform?\",\n    \"answer\": \"1. User Authentication, 2. Book Listing System, 3. Search & Filter Feature, 4. Chat & Negotiation, 5. Review System.\"\n  },\n  {\n    \"question\": \"What are the expected impacts of the book exchange platform?\",\n    \"answer\": \"Cost Savings, Sustainability, Convenience, and Community Building.\"\n  }\n]"
+          ],
+          "pdfName": [
+            "bookexchange.pdf"
+          ],
+          "userId": [
+            "a09a0051-389c-4cbb-9a04-a547b2933bd8"
+          ],
+          "pdfUrl": [
+            "https://qxmzvlwedjneirmutxap.supabase.co/storage/v1/object/public/pdf-notes/1744230060138_bookexchange.pdf"
+          ]
+        }
+      }
+    ],
+    "Edit Fields1": [
+      {
+        "json": {
+          "summary": " The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured, inefficient, and make it challenging for students to find books they need on time. The proposed platform allows students to buy, sell, or exchange books with peers in their college community through features like user registration, book listing & searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT-based secure login system for authentication. The implementation strategy includes user authentication, book listing system, search & filter feature, chat & negotiation, and review system. The platform aims to reduce costs, promote sustainability, provide convenience, and foster community building.",
+          "mindmap": "[{\"id\":\"platform\",\"Label\":\"Peer-to-Peer Book Exchange Platform\"},{\"id\":\"problem\",\"Label\":\"Problems\",\"parentId\":\"platform\"},{\"id\":\"problem_textbooks\",\"Label\":\"Textbooks are a significant expense for students\",\"parentId\":\"problem\"},{\"id\":\"problem_second_hand_books\",\"Label\":\"Finding affordable second-hand books is difficult\",\"parentId\":\"problem\"},{\"id\":\"problem_unstructured\",\"Label\":\"Existing options are unstructured and inefficient\",\"parentId\":\"problem\"},{\"id\":\"problem_wasted_resources\",\"Label\":\"Lack of dedicated platform results in wasted resources\",\"parentId\":\"problem\"},{\"id\":\"solution\",\"Label\":\"Proposed Solution\",\"parentId\":\"platform\"},{\"id\":\"solution_platform\",\"Label\":\"Web-based platform for students to buy, sell, or exchange books\",\"parentId\":\"solution\"},{\"id\":\"features\",\"Label\":\"Key Features\",\"parentId\":\"solution_platform\"},{\"id\":\"features_registration\",\"Label\":\"User Registration & Profiles\",\"parentId\":\"features\"},{\"id\":\"features_listing\",\"Label\":\"Book Listing & Searching\",\"parentId\":\"features\"},{\"id\":\"features_chat\",\"Label\":\"Chat System\",\"parentId\":\"features\"},{\"id\":\"features_review\",\"Label\":\"Rating System\",\"parentId\":\"features\"},{\"id\":\"features_exchange\",\"Label\":\"Exchange Option\",\"parentId\":\"features\"},{\"id\":\"tech_stack\",\"Label\":\"Tech Stack\",\"parentId\":\"platform\"},{\"id\":\"tech_stack_frontend\",\"Label\":\"Frontend: React.js or Vue.js\",\"parentId\":\"tech_stack\"},{\"id\":\"tech_stack_backend\",\"Label\":\"Backend: Node.js with Express.js or Django\",\"parentId\":\"tech_stack\"},{\"id\":\"tech_stack_database\",\"Label\":\"Database: MongoDB or PostgreSQL\",\"parentId\":\"tech_stack\"},{\"id\":\"tech_stack_authentication\",\"Label\":\"Authentication: Firebase Authentication or JWT\",\"parentId\":\"tech_stack\"},{\"id\":\"implementation\",\"Label\":\"Implementation Strategy\",\"parentId\":\"platform\"},{\"id\":\"implementation_authentication\",\"Label\":\"1. User Authentication\",\"parentId\":\"implementation\"},{\"id\":\"implementation_listing\",\"Label\":\"2. Book Listing System\",\"parentId\":\"implementation\"},{\"id\":\"implementation_search\",\"Label\":\"3. Search & Filter Feature\",\"parentId\":\"implementation\"},{\"id\":\"implementation_chat\",\"Label\":\"4. Chat & Negotiation\",\"parentId\":\"implementation\"},{\"id\":\"implementation_review\",\"Label\":\"5. Review System\",\"parentId\":\"implementation\"},{\"id\":\"impact\",\"Label\":\"Impact\",\"parentId\":\"platform\"},{\"id\":\"impact_cost\",\"Label\":\"Cost Savings\",\"parentId\":\"impact\"},{\"id\":\"impact_sustainability\",\"Label\":\"Sustainability\",\"parentId\":\"impact\"},{\"id\":\"impact_convenience\",\"Label\":\"Convenience\",\"parentId\":\"impact\"},{\"id\":\"impact_community\",\"Label\":\"Community Building\",\"parentId\":\"impact\"},{\"id\":\"conclusion\",\"Label\":\"Conclusion\",\"parentId\":\"platform\"}]",
+          "flashcard": " [\n  {\n    \"question\": \"What is the problem faced by students regarding textbooks?\",\n    \"answer\": \"Textbooks are a significant expense for students, and finding affordable second-hand books is difficult. Existing options are unstructured and inefficient, making it challenging for students to find the books they need on time.\"\n  },\n  {\n    \"question\": \"What is the proposed solution for the textbook problem?\",\n    \"answer\": \"A web-based platform for students to buy, sell, or exchange books directly with peers in their college community.\"\n  },\n  {\n    \"question\": \"What are the key features of the book exchange platform?\",\n    \"answer\": \"User Registration & Profiles, Book Listing & Searching, Chat System, Rating System, and Exchange Option.\"\n  },\n  {\n    \"question\": \"What technology stack is proposed for the platform's development?\",\n    \"answer\": \"Frontend: React.js or Vue.js, Backend: Node.js with Express.js or Django, Database: MongoDB (NoSQL) or PostgreSQL, Authentication: Firebase Authentication or JWT-based secure login system.\"\n  },\n  {\n    \"question\": \"What are the steps in the implementation strategy for the platform?\",\n    \"answer\": \"1. User Authentication, 2. Book Listing System, 3. Search & Filter Feature, 4. Chat & Negotiation, 5. Review System.\"\n  },\n  {\n    \"question\": \"What are the expected impacts of the book exchange platform?\",\n    \"answer\": \"Cost Savings, Sustainability, Convenience, and Community Building.\"\n  }\n]",
+          "pdfName": "bookexchange.pdf",
+          "userId": "a09a0051-389c-4cbb-9a04-a547b2933bd8",
+          "pdfUrl": "https://qxmzvlwedjneirmutxap.supabase.co/storage/v1/object/public/pdf-notes/1744230060138_bookexchange.pdf"
+        }
+      }
+    ],
+    "Code1": [
+      {
+        "json": {
+          "summary": " The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured, inefficient, and make it challenging for students to find books they need on time. The proposed platform allows students to buy, sell, or exchange books with peers in their college community through features like user registration, book listing & searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT-based secure login system for authentication. The implementation strategy includes user authentication, book listing system, search & filter feature, chat & negotiation, and review system. The platform aims to reduce costs, promote sustainability, provide convenience, and foster community building.",
+          "flashcards": [
+            {
+              "question": "What is the problem faced by students regarding textbooks?",
+              "answer": "Textbooks are a significant expense for students, and finding affordable second-hand books is difficult. Existing options are unstructured and inefficient, making it challenging for students to find the books they need on time."
+            },
+            {
+              "question": "What is the proposed solution for the textbook problem?",
+              "answer": "A web-based platform for students to buy, sell, or exchange books directly with peers in their college community."
+            },
+            {
+              "question": "What are the key features of the book exchange platform?",
+              "answer": "User Registration & Profiles, Book Listing & Searching, Chat System, Rating System, and Exchange Option."
+            },
+            {
+              "question": "What technology stack is proposed for the platform's development?",
+              "answer": "Frontend: React.js or Vue.js, Backend: Node.js with Express.js or Django, Database: MongoDB (NoSQL) or PostgreSQL, Authentication: Firebase Authentication or JWT-based secure login system."
+            },
+            {
+              "question": "What are the steps in the implementation strategy for the platform?",
+              "answer": "1. User Authentication, 2. Book Listing System, 3. Search & Filter Feature, 4. Chat & Negotiation, 5. Review System."
+            },
+            {
+              "question": "What are the expected impacts of the book exchange platform?",
+              "answer": "Cost Savings, Sustainability, Convenience, and Community Building."
+            }
+          ],
+          "mindmap": [
+            {
+              "id": "platform",
+              "Label": "Peer-to-Peer Book Exchange Platform"
+            },
+            {
+              "id": "problem",
+              "Label": "Problems",
+              "parentId": "platform"
+            },
+            {
+              "id": "problem_textbooks",
+              "Label": "Textbooks are a significant expense for students",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_second_hand_books",
+              "Label": "Finding affordable second-hand books is difficult",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_unstructured",
+              "Label": "Existing options are unstructured and inefficient",
+              "parentId": "problem"
+            },
+            {
+              "id": "problem_wasted_resources",
+              "Label": "Lack of dedicated platform results in wasted resources",
+              "parentId": "problem"
+            },
+            {
+              "id": "solution",
+              "Label": "Proposed Solution",
+              "parentId": "platform"
+            },
+            {
+              "id": "solution_platform",
+              "Label": "Web-based platform for students to buy, sell, or exchange books",
+              "parentId": "solution"
+            },
+            {
+              "id": "features",
+              "Label": "Key Features",
+              "parentId": "solution_platform"
+            },
+            {
+              "id": "features_registration",
+              "Label": "User Registration & Profiles",
+              "parentId": "features"
+            },
+            {
+              "id": "features_listing",
+              "Label": "Book Listing & Searching",
+              "parentId": "features"
+            },
+            {
+              "id": "features_chat",
+              "Label": "Chat System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_review",
+              "Label": "Rating System",
+              "parentId": "features"
+            },
+            {
+              "id": "features_exchange",
+              "Label": "Exchange Option",
+              "parentId": "features"
+            },
+            {
+              "id": "tech_stack",
+              "Label": "Tech Stack",
+              "parentId": "platform"
+            },
+            {
+              "id": "tech_stack_frontend",
+              "Label": "Frontend: React.js or Vue.js",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_backend",
+              "Label": "Backend: Node.js with Express.js or Django",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_database",
+              "Label": "Database: MongoDB or PostgreSQL",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "tech_stack_authentication",
+              "Label": "Authentication: Firebase Authentication or JWT",
+              "parentId": "tech_stack"
+            },
+            {
+              "id": "implementation",
+              "Label": "Implementation Strategy",
+              "parentId": "platform"
+            },
+            {
+              "id": "implementation_authentication",
+              "Label": "1. User Authentication",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_listing",
+              "Label": "2. Book Listing System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_search",
+              "Label": "3. Search & Filter Feature",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_chat",
+              "Label": "4. Chat & Negotiation",
+              "parentId": "implementation"
+            },
+            {
+              "id": "implementation_review",
+              "Label": "5. Review System",
+              "parentId": "implementation"
+            },
+            {
+              "id": "impact",
+              "Label": "Impact",
+              "parentId": "platform"
+            },
+            {
+              "id": "impact_cost",
+              "Label": "Cost Savings",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_sustainability",
+              "Label": "Sustainability",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_convenience",
+              "Label": "Convenience",
+              "parentId": "impact"
+            },
+            {
+              "id": "impact_community",
+              "Label": "Community Building",
+              "parentId": "impact"
+            },
+            {
+              "id": "conclusion",
+              "Label": "Conclusion",
+              "parentId": "platform"
+            }
+          ],
+          "pdfName": "bookexchange.pdf",
+          "userId": "a09a0051-389c-4cbb-9a04-a547b2933bd8",
+          "pdfUrl": "https://qxmzvlwedjneirmutxap.supabase.co/storage/v1/object/public/pdf-notes/1744230060138_bookexchange.pdf"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ai summary": {
+      "main": [
+        [
+          {
+            "node": "summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Ai summary",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ai mind maps json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ai flashcard json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai flashcard json": {
+      "main": [
+        [
+          {
+            "node": "flashcard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ai mind maps json": {
+      "main": [
+        [
+          {
+            "node": "mindmap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "summary": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mindmap": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "flashcard": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a765deb5-1750-445b-938f-1ba65cf2f1d7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ba2ca0aaddf2e21934efdc7a495dcbab21d4389f4a709ce5d7cf7de26cf17a79"
+  },
+  "id": "LH1QCvPgyRNRytFl",
+  "tags": []
+}
