@@ -12,12 +12,17 @@ interface Flashcard {
   answer: string;
 }
 
+type TabType = 'summary' | 'flashcards' | 'mindmap';
+
 export default function MainDisplay() {
   const { uploadData } = useUpload();
   const [userId, setUserId] = useState<string | null>(null);
   const [summary, setSummary] = useState<string>('');
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [mindmap, setMindmap] = useState<any>(null); // can define type if needed
+  const [activeTab, setActiveTab] = useState<TabType>('summary');
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
     setSummary("The Peer-to-Peer Book Exchange Platform is a solution to the high cost of textbooks for students, who often only need them for a semester. Current options are unstructured and inefficient, making it difficult for students to find affordable books on time. The platform allows students to buy, sell, or exchange books with others in their college community through features like user registration, book listing and searching, chat system, and rating system. The tech stack includes React.js or Vue.js for frontend, Node.js with Express.js or Django for backend, MongoDB (NoSQL) or PostgreSQL for database, and Firebase Authentication or JWT for secure login. The platform aims to save costs for students, promote sustainability, and build a community of sharing and collaboration.")
     setFlashcards([
@@ -223,8 +228,9 @@ export default function MainDisplay() {
     if (!uploadData || !userId) return;
 
     const sendToN8N = async () => {
+      setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:5678/webhook-test/upload-finished', {
+        const response = await fetch(process.env.N8N_WEBHOOK_URL || '' , {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -243,6 +249,8 @@ export default function MainDisplay() {
         setMindmap(result.mindmap || null);
       } catch (err) {
         console.error("Error sending to n8n:", err);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -250,57 +258,79 @@ export default function MainDisplay() {
   }, [uploadData, userId]);
 
   return (
-    <div className="p-6 bg-blue-50 min-h-screen">
-      <h1 className="text-2xl font-bold text-blue-800">Main Content for the Display</h1>
+    <div className="bg-gray-800 rounded-lg overflow-hidden transition-all duration-300">
+      {/* Tabs */}
+      <div className="flex border-b border-gray-700">
+        <button 
+          className={`flex-1 py-3 text-center transition-all duration-300 ${activeTab === 'summary' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-300 hover:text-blue-400'}`}
+          onClick={() => setActiveTab('summary')}
+        >
+          Summary
+        </button>
+        <button 
+          className={`flex-1 py-3 text-center transition-all duration-300 ${activeTab === 'flashcards' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-300 hover:text-blue-400'}`}
+          onClick={() => setActiveTab('flashcards')}
+        >
+          Flashcards
+        </button>
+        <button 
+          className={`flex-1 py-3 text-center transition-all duration-300 ${activeTab === 'mindmap' ? 'text-blue-400 border-b-2 border-blue-400' : 'text-blue-300 hover:text-blue-400'}`}
+          onClick={() => setActiveTab('mindmap')}
+        >
+          Mindmap
+        </button>
+      </div>
 
-      {uploadData && (
-        <div className="mt-4 space-y-2">
-          <p className="font-semibold text-blue-700"><strong>Uploaded PDF Name:</strong> {uploadData.pdfName}</p>
-          <p className="text-blue-600 underline"><strong>PDF URL:</strong> <a href={uploadData.pdfUrl} target="_blank" rel="noreferrer">{uploadData.pdfUrl}</a></p>
-        </div>
-      )}
+      {/* Content */}
+      <div className="p-6">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12 animate-spin"></div>
+          </div>
+        ) : (
+          <>
+            {/* Summary Tab */}
+            {activeTab === 'summary' && (
+              <div className="animate-fadeIn">
+                {summary ? (
+                  <p className="text-blue-300">{summary}</p>
+                ) : (
+                  <p className="text-gray-400">Upload a PDF to generate a summary.</p>
+                )}
+              </div>
+            )}
 
-      {summary ? (
-        <div className="mt-6 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-lg font-semibold mb-2 text-blue-800">📄 Summary</h2>
-          <p className="text-blue-600">{summary}</p>
-        </div>
-      ) : (
-        <div className="flex justify-center items-center mt-6">
-          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
-        </div>
-      )}
+            {/* Flashcards Tab */}
+            {activeTab === 'flashcards' && (
+              <div className="animate-fadeIn">
+                {flashcards.length > 0 ? (
+                  <ul className="space-y-4">
+                    {flashcards.map((card, index) => (
+                      <li key={index} className="bg-gray-700 p-4 rounded-lg shadow-sm hover:shadow-md transition-all duration-300">
+                        <p className="font-medium text-blue-300">Q: {card.question}</p>
+                        <p className="text-blue-200 mt-2">A: {card.answer}</p>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-gray-400">Upload a PDF to generate flashcards.</p>
+                )}
+              </div>
+            )}
 
-      {flashcards.length > 0 ? (
-        <div className="mt-6">
-          <h2 className="text-lg font-semibold mb-2 text-blue-800">🧠 Flashcards</h2>
-          <ul className="space-y-4">
-            {flashcards.map((card, index) => (
-              <li key={index} className="bg-white border p-4 rounded-lg shadow-sm">
-                <p className="font-medium text-blue-800">Q: {card.question}</p>
-                <p className="text-blue-600 mt-1">A: {card.answer}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : (
-        <div className="flex justify-center items-center mt-6">
-          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
-        </div>
-      )}
-
-      {mindmap ? (
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold mb-2 text-blue-800">Mindmap Diagram</h2>
-          <Mindmap 
-            data={mindmap}
-          />
-        </div>
-      ) : (
-        <div className="flex justify-center items-center mt-8">
-          <div className="loader ease-linear rounded-full border-4 border-t-4 border-blue-200 h-12 w-12"></div>
-        </div>
-      )}
+            {/* Mindmap Tab */}
+            {activeTab === 'mindmap' && (
+              <div className="animate-fadeIn">
+                {mindmap ? (
+                  <Mindmap data={mindmap} />
+                ) : (
+                  <p className="text-gray-400">Upload a PDF to generate a mindmap.</p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

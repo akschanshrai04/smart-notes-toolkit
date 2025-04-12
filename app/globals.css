@@ -1,1 +1,7 @@
 @import "tailwindcss";
+
+
+.loader {
+    border-color: rgba(191, 219, 254, 0.3);
+    border-top-color: #3b82f6;
+}
